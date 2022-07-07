@@ -1,7 +1,7 @@
 // This code can be run on an interval (e.g., every 24 hours) for each active
 // metered subscription.
 const { v4: uuid } = require('uuid');
-require('dotenv').config({ path: './.env' });
+require('dotenv').config({ path: '../.env' });
 // Set your secret key. Remember to switch to your live secret key in production!
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -13,9 +13,9 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // usage for the day. If you aren't storing subscription item IDs,
 // you can retrieve the subscription and check for subscription items
 // https://stripe.com/docs/api/subscriptions/object#subscription_object-items.
-const subscriptionItemID = '';
+const subscriptionItemID = 'si_M0tclL003cEdNE';
 // The usage number you've been keeping track of in your own database for the last 24 hours.
-const usageQuantity = 100;
+const usageQuantity = 1;
 
 // The idempotency key allows you to retry this usage record call if it fails.
 const idempotencyKey = uuid();

@@ -47,11 +47,6 @@ if (
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
-  appInfo: { // For sample support and debugging, not required for production:
-    name: "stripe-samples/subscription-use-cases/usage-based-subscriptions",
-    version: "0.0.1",
-    url: "https://github.com/stripe-samples/subscription-use-cases/usage-based-subscriptions"
-  }
 });
 
 app.use(express.static(process.env.STATIC_DIR));
@@ -199,6 +194,12 @@ app.post('/retrieve-customer-payment-method', async (req, res) => {
   );
 
   res.send(paymentMethod);
+});
+
+app.post('/report-usage', async (req, res) => {
+  const number = req.body.number;
+  
+
 });
 // Webhook handler for asynchronous events.
 app.post(
