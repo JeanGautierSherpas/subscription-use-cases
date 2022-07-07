@@ -242,7 +242,35 @@ app.post('/create-product-and-prices', async (req, res) => {
 }
 });
 
-app.post('/create-subscription-between-J-and-J',async (req, res) => {});
+app.post('/create-subscription-between-J-and-J',async (req, res) => {
+  try {
+    // change the price id with the required one
+    const subscription = await stripe.subscriptions.create({
+      customer: process.env.COMPTE_CUSTOMER_CLIENT_ID,
+      items: [
+        {price: 'price_1LIwQKDnahqFVvJv90OnmVJL'},
+      ],
+      description: 'un produit pour announce de jean gautier ACCT',
+      metadata: {
+        seoId: 'developpeur-je-donne-des-cours-de-mathematiques-dinformatique-pour-tout-niveaux-et-pour-tout-mindset',
+        teacherId: 'J-J',
+        announceId: 'J-J-announce',
+      },
+      payment_behavior: "error_if_incomplete",
+      application_fee_percent: 30,
+      collection_method: "charge_automatically",
+      /** extrement interessant proration behavior: https://stripe.com/docs/billing/subscriptions/billing-cycle#prorations  */
+      proration_behavior: 'create_prorations',
+      transfer_data: {
+        destination: process.env.COMPTE_CONNECT_CLIENT_ID,
+        /** ne pas mettre transfert amount si application_fee_percent renseigné */
+      }
+    });
+    res.send({ subscription });
+  } catch (error) {
+    console.log('erreur de subscirption',error?.message)
+  }
+});
 
 app.post('/retrieve-customer-payment-method', async (req, res) => {
   const paymentMethod = await stripe.paymentMethods.retrieve(
