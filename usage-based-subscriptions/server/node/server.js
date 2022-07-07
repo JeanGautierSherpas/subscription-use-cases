@@ -10,7 +10,9 @@ if (
   !process.env.STRIPE_PUBLISHABLE_KEY ||
   !process.env.BASIC ||
   !process.env.PREMIUM ||
-  !process.env.STATIC_DIR
+  !process.env.STATIC_DIR ||
+  !process.env.COMPTE_CONNECT_CLIENT_ID ||
+  !process.env.COMPTE_CUSTOMER_CLIENT_ID
 ) {
   console.log(
     'The .env file is not configured. Follow the instructions in the readme to configure the .env file. https://github.com/stripe-samples/subscription-use-cases'
@@ -40,6 +42,16 @@ if (
     ? ''
     : console.log(
         'Add STATIC_DIR to your .env file. Check .env.example in the root folder for an example'
+      );
+  process.env.COMPTE_CONNECT_CLIENT_ID
+    ? ''
+    : console.log(
+        'Add COMPTE_CONNECT_CLIENT_ID to your .env file. Check .env.example in the root folder for an example'
+      );
+  process.env.COMPTE_CUSTOMER_CLIENT_ID
+    ? ''
+    : console.log(
+        'Add COMPTE_CUSTOMER_CLIENT_ID to your .env file. Check .env.example in the root folder for an example'
       );
 
   process.exit();
@@ -187,6 +199,50 @@ app.post('/update-subscription', async (req, res) => {
 
   res.send(updatedSubscription);
 });
+
+app.post('/create-product-and-prices', async (req, res) => {
+  // Create a new Product
+  const product = await stripe.products.create({
+    name: 'Cour De Jean Maths',
+    description: 'un produit pour announce de jean gautier ACCT',
+    metadata: {
+      seoId: 'developpeur-je-donne-des-cours-de-mathematiques-dinformatique-pour-tout-niveaux-et-pour-tout-mindset'
+    }
+  });
+  const { id } = product;
+  // Create a new Price For Priduct
+  try {
+  const price = await stripe.prices.create({
+    currency: 'eur',
+    recurring: {interval: 'month', usage_type: "metered", aggregate_usage: "sum" },
+    billing_scheme: "tiered",
+    tiers:[{
+      flat_amount: 10000,
+      unit_amount_decimal: 0,
+      up_to: 240,
+    },
+    {
+      unit_amount: 2200,
+      up_to: 'inf'
+    }],
+    tiers_mode: "graduated",
+    product: id,
+    metadata: {
+      availableMinutes: 240,
+      availableMonths: 6,
+    }
+  });
+  
+  // save the price 
+  // in your database.
+
+  res.send({ price });
+} catch (error) {
+  console.log('erreur de prix',error?.message)
+}
+});
+
+app.post('/create-subscription-between-J-and-J',async (req, res) => {});
 
 app.post('/retrieve-customer-payment-method', async (req, res) => {
   const paymentMethod = await stripe.paymentMethods.retrieve(
