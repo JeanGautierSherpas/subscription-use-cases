@@ -41,6 +41,11 @@ dist
 # React
 build
 
+.env/
+*/.env
+*/*/.env
+*/*/*/.env
+
 # act
 .secrets
 
