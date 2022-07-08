@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const { resolve } = require('path');
+const { v4: uuid } = require('uuid');
 const bodyParser = require('body-parser');
 // Replace if using a different env file or config
 require('dotenv').config({ path: './.env' });
@@ -271,6 +272,29 @@ app.post('/create-subscription-between-J-and-J',async (req, res) => {
     console.log('erreur de subscirption',error?.message)
   }
 });
+
+app.post('/use-product',async (req, res) => {
+  const minutesUsage = req.body.minutes;
+  const timestamp = parseInt(Date.now() / 1000);
+  /**  The idempotency key allows you to retry this usage record call if it fails. */
+  const idempotencyKey = uuid();
+  try {
+   const usageRecord = await stripe.subscriptionItems.createUsageRecord(
+      'si_M0yqKCA51nnVg0',
+      {
+        quantity: minutesUsage,
+        timestamp: timestamp,
+        action: 'set',
+      },
+      {
+        idempotencyKey
+      }
+    );
+    res.send({ usageRecord });
+  } catch (error) {
+    console.error(`Usage report failed for item: ${error.toString()}`);
+  }
+})
 
 app.post('/retrieve-customer-payment-method', async (req, res) => {
   const paymentMethod = await stripe.paymentMethods.retrieve(
