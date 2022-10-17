@@ -258,8 +258,10 @@ app.post('/create-subscription-between-J-and-J',async (req, res) => {
         announceId: 'J-J-announce',
       },
       payment_behavior: "error_if_incomplete",
+      cancel_at_period_end: true,
       application_fee_percent: 30,
       collection_method: "charge_automatically",
+      cancel_at: Math.floor(new Date('september 19, 2020 23:15:30').getTime() / 1000),
       /** extrement interessant proration behavior: https://stripe.com/docs/billing/subscriptions/billing-cycle#prorations  */
       proration_behavior: 'create_prorations',
       transfer_data: {
@@ -309,6 +311,40 @@ app.post('/report-usage', async (req, res) => {
   
 
 });
+
+app.post('/create-invoice-dmr', async ( req, res ) => {
+  try {
+    const invoiceItem = await stripe.invoiceItems.create({
+      customer: process.env.COMPTE_CUSTOMER_CLIENT_ID,
+      price: 'price_1LskdDDnahqFVvJvYNedjT3B',
+      //invoice: '{{INVOICE_ID}}',
+    });
+    const data = await stripe.invoices.create({
+      customer: process.env.COMPTE_CUSTOMER_CLIENT_ID,
+      /** process auto collection method */
+      auto_advance: true,
+      collection_method: "charge_automatically",
+      discounts: [{
+        /** id d'une reduction */
+        coupon: 'NbCQqcV1',
+        /** id d'un objet discount */
+       // discount: 'discount_1LJ0QKDnahqFVvJvZ5Z5Z5Z5',
+      }],
+      /** connect */
+      //on_behalf_of: process.env.COMPTE_CONNECT_CLIENT_ID,
+      /** payment intent option */
+      // payment_settings: {
+      //   payment_method_options
+      // }
+    });
+    const invoice = await stripe.invoices.pay(
+      data.id
+    );
+    res.send({ invoice });
+  } catch (error) {
+    console.log('erreur de subscirption',error?.message)
+  }
+});
 // Webhook handler for asynchronous events.
 app.post(
   '/webhook',
@@ -316,7 +352,7 @@ app.post(
   async (req, res) => {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event;
-
+    console.log('i been call');
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
@@ -333,7 +369,7 @@ app.post(
     }
     // Extract the object from the event.
     const dataObject = event.data.object;
-
+    console.log('webhook event', event.type);
     // Handle the event
     // Review important events for Billing webhooks
     // https://stripe.com/docs/billing/webhooks
